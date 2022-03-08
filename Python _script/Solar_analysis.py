@@ -8,6 +8,8 @@ from PIL import Image
 sg.theme('Default1')  # please make your windows colorful
 
 divisions = {
+    '2 hours': 1/2,
+    '1.5 hour': 2/3,
     'hour': 1,
     '30 min': 2,
     '20 min': 3,
@@ -15,13 +17,28 @@ divisions = {
     '10 min': 6
 }
 
-layout = [[sg.Text('Parameters:', font=("Helvetica", 13))],
-          [sg.Button('Select images', key='Select'), sg.Text('selected:'), sg.Text('0', key='num_images')],
-          [sg.Text('Simulation time shots every', tooltip='The time parameter set in the 3d program'),
-           sg.Combo(['hour', '30 min', '20 min', '15 min', '10 min'], default_value='hour', key='shots_ph')],
-          [sg.Text('Color gradient'),
-           sg.Combo(['viridis', 'plasma', 'inferno', 'magma', 'cividis'], default_value='viridis', key='cm_name')],
-          [sg.Submit(), sg.Exit()]]
+layout = [
+    [sg.Text('Parameters:', font=("Helvetica", 13))],
+    [sg.Column([[sg.Text('IN:', font=("Helvetica", 11))],
+                [sg.Button('Select images', key='Select')],
+                [sg.Text('Simulation time shots every', tooltip='The time parameter set in the 3d program')],
+                ]),
+     sg.Column([[sg.Text('', font=("Helvetica", 11))],
+                [sg.Text('selected:'), sg.Text('0', key='num_images')],
+                [sg.Combo(list(divisions.keys()), default_value='hour', key='shots_ph')],
+                ]),
+     sg.Column([[sg.Text('OUT:', font=("Helvetica", 11))],
+                [sg.Text('Color every', tooltip='Time between color-changes')],
+                [sg.Text('Color gradient')]
+                ]),
+     sg.Column([[sg.Text('', font=("Helvetica", 11))],
+                [sg.Combo(list(divisions.keys()), default_value='hour', key='colors_ph')],
+                [sg.Combo(['viridis', 'plasma', 'inferno', 'magma', 'cividis'], default_value='viridis', key='cm_name')]
+                ])
+     ],
+    [sg.Image(r'C:\Users\phili\OneDrive\Documents\shadow analysis\PIES\colormaps.png')],
+    [sg.Submit(), sg.Exit()]
+  ]
 
 window = sg.Window('Shadow analysis', layout)
 
@@ -69,7 +86,8 @@ while True:  # Event Loop
         img_comb = np.subtract(img_comb, img_lines)
 
         # own colormap
-        my_cm = cm.get_cmap(values['cm_name'], img_len)
+
+        my_cm = cm.get_cmap(values['cm_name'], int(img_len * w * divisions[values['colors_ph']]))
         my_cm.set_under('black')
 
         # mathplot
@@ -78,9 +96,3 @@ while True:  # Event Loop
         show()
 
 window.close()
-
-
-
-
-
-
