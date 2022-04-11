@@ -1,15 +1,14 @@
 import PySimpleGUI as sg
 import numpy as np
-
-from matplotlib.pyplot import imshow, show, colorbar
-from matplotlib import cm
 from PIL import Image
+from matplotlib import cm
+from matplotlib.pyplot import imshow, show, colorbar
 
 sg.theme('Default1')  # please make your windows colorful
 
 divisions = {
-    '2 hours': 1/2,
-    '1.5 hour': 2/3,
+    '2 hours': 1 / 2,
+    '1.5 hour': 2 / 3,
     'hour': 1,
     '30 min': 2,
     '20 min': 3,
@@ -34,12 +33,19 @@ layout = [
                 ]),
      sg.Column([[sg.Text('', font=("Helvetica", 11))],
                 [sg.Combo(list(divisions.keys()), default_value='hour', key='colors_ph')],
-                [sg.Combo(['viridis', 'plasma', 'inferno', 'magma', 'cividis'], default_value='viridis', key='cm_name')]
+                [sg.Combo(['viridis', 'plasma', 'inferno', 'magma', 'cividis', 'GnBu', 'terrain', 'rainbow', 'summer',
+                           'gist_earth', 'ocean', 'Greys'], default_value='viridis', key='cm_name')]
                 ])
      ],
     [sg.Image(image_1)],
-    [sg.Submit(), sg.Exit()]
-  ]
+    [sg.Slider(orientation='horizontal', key='stSlider', range=(-1, 255), default_value=250),
+     # sg.Text("black <"),
+     # sg.Input(key='stVal', size=(3, 1)),
+     # sg.Input(key='enVal', size=(3, 1)),
+     # sg.Text("<white"),
+     sg.Slider(orientation='horizontal', key='endSlider', range=(-1, 255), default_value=10)],
+    [sg.Submit(), sg.Exit()],
+]
 
 window = sg.Window('Shadow analysis', layout)
 
@@ -65,9 +71,9 @@ while True:  # Event Loop
         img_data = [np.asarray(a) for a in img]
 
         # weight
-        w = 1/divisions[values['shots_ph']]
+        w = 1 / divisions[values['shots_ph']]
 
-        t1 = 200  # threshold 1
+        t1 = int(values['stSlider'])  # threshold 1
         img_bin = [np.where(a > t1, w, 0) for a in img_data]
 
         # summation
@@ -79,7 +85,7 @@ while True:  # Event Loop
             count += 1
 
         # subtract lines
-        t2 = 100  # threshold 2
+        t2 = int(values['endSlider'])  # threshold 2
         img_lines = np.where(img_data[0] > t2, 0, 25)
         img_comb = np.subtract(img_comb, img_lines)
 
@@ -89,14 +95,8 @@ while True:  # Event Loop
         my_cm.set_under('black')
 
         # mathplot
-        result = imshow(img_comb, cmap=my_cm, vmin=0)
+        result = imshow(img_comb, cmap=my_cm, vmin=-0.5, vmax=count - 0.5)
         colorbar()
         show()
 
 window.close()
-
-
-
-
-
-
