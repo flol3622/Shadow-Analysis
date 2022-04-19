@@ -1,8 +1,10 @@
 import PySimpleGUI as sg
 import numpy as np
+import os
 from PIL import Image
 from matplotlib import cm
-from matplotlib.pyplot import imshow, show, colorbar, imsave
+from matplotlib.pyplot import imshow, show, colorbar, imsave, savefig, subplots
+
 
 sg.theme('Default1')  # please make your windows colorful
 
@@ -44,7 +46,7 @@ layout = [
      # sg.Input(key='enVal', size=(3, 1)),
      # sg.Text("<white"),
      sg.Slider(orientation='horizontal', key='endSlider', range=(-1, 255), default_value=10)],
-    [sg.Submit(), sg.Exit()],
+    [sg.Submit(), sg.Exit(), sg.Text('on exit: output image in input directory')],
 ]
 
 window = sg.Window('Shadow analysis', layout)
@@ -69,6 +71,7 @@ while True:  # Event Loop
         # Get images, convert to numpy Black and White
         img = [Image.open(a).convert("L") for a in img_dir]
         img_data = [np.asarray(a) for a in img]
+        out_dir = os.path.dirname(img_dir[0])
 
         # weight
         w = 1 / divisions[values['shots_ph']]
@@ -98,8 +101,25 @@ while True:  # Event Loop
         # mathplot
         imshow(img_comb, cmap=my_cm, vmin=-w/2, vmax = top - w/2)
         # vmax = count - 0.5
-        imsave("C:/Users/phili/OneDrive/Bureau/lol.png", img_comb,  cmap=my_cm, vmin=-w/2, vmax = top - w/2)
-        colorbar()
+        cbar = colorbar()
+        cbar.ax.set_ylabel('hours of direct sunlight', rotation=270)
         show()
+
+        # create colorbar image
+        img_show = imshow(img_comb, cmap=my_cm, vmin=-w / 2, vmax=top - w / 2)
+        fig,ax = subplots()
+        cbar = colorbar(img_show, ax=ax)
+        cbar.ax.set_ylabel('hours of direct sunlight', rotation=270)
+        ax.remove()
+        savefig(out_dir+"/colorbar.png", bbox_inches='tight')
+
+        # compile images to output
+        imsave(out_dir + "/combined.png", img_comb, cmap=my_cm, vmin=-w / 2, vmax=top - w / 2)
+        new_img = Image.open(out_dir+"/combined.png")
+        new_bar = Image.open(out_dir+"/colorbar.png")
+        img_width, img_height = new_img.size
+        bar_width, bar_height = new_bar.size
+        new_img.paste(new_bar, (img_width-bar_width, img_height-bar_height))
+        new_img.save(out_dir+"/combined.png")
 
 window.close()
