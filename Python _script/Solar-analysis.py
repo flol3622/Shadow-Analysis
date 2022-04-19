@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 import numpy as np
 from PIL import Image
 from matplotlib import cm
-from matplotlib.pyplot import imshow, show, colorbar
+from matplotlib.pyplot import imshow, show, colorbar, imsave
 
 sg.theme('Default1')  # please make your windows colorful
 
@@ -88,6 +88,7 @@ while True:  # Event Loop
         t2 = int(values['endSlider'])  # threshold 2
         img_lines = np.where(img_data[0] > t2, 0, 25)
         img_comb = np.subtract(img_comb, img_lines)
+        top = np.amax(img_comb)
 
         # own colormap
 
@@ -95,7 +96,9 @@ while True:  # Event Loop
         my_cm.set_under('black')
 
         # mathplot
-        result = imshow(img_comb, cmap=my_cm, vmin=-0.5, vmax=count - 0.5)
+        imshow(img_comb, cmap=my_cm, vmin=-w/2, vmax = top - w/2)
+        # vmax = count - 0.5
+        imsave("C:/Users/phili/OneDrive/Bureau/lol.png", img_comb,  cmap=my_cm, vmin=-w/2, vmax = top - w/2)
         colorbar()
         show()
 
